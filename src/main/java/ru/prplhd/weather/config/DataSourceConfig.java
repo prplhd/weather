@@ -10,13 +10,17 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource("classpath:app.properties")
-public class RootConfig {
+public class DataSourceConfig {
 
     @Bean
     public DataSource dataSource(Environment env) {
         HikariDataSource ds = new HikariDataSource();
 
-        ds.setJdbcUrl(env.getRequiredProperty("db.url"));
+        String baseUrl = env.getRequiredProperty("db.url");
+        String schema = env.getRequiredProperty("db.schema");
+        String jdbcUrl = appendCurrentSchema(baseUrl, schema);
+
+        ds.setJdbcUrl(jdbcUrl);
         ds.setUsername(env.getRequiredProperty("db.username"));
         ds.setPassword(env.getRequiredProperty("db.password"));
         ds.setDriverClassName(env.getRequiredProperty("db.driver"));
@@ -37,5 +41,10 @@ public class RootConfig {
         ds.setMaxLifetime(maxLifetime);
 
         return ds;
+    }
+
+    private String appendCurrentSchema(String baseUrl, String schema) {
+        String separator = baseUrl.contains("?") ? "&" : "?";
+        return baseUrl + separator + "currentSchema=" + schema;
     }
 }

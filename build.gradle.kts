@@ -24,6 +24,7 @@ dependencies {
 
     implementation("com.zaxxer:HikariCP:7.0.2")
     runtimeOnly("org.postgresql:postgresql:42.7.10")
+    implementation("org.liquibase:liquibase-core:5.0.2")
 }
 
 tasks.test {
