@@ -9,7 +9,12 @@ public class SpringMvcDispatcherServletInitializer extends AbstractAnnotationCon
 
     @Override
     protected Class<?> @Nullable [] getRootConfigClasses() {
-        return new Class[] {DataSourceConfig.class, LiquibaseConfig.class};
+        return new Class[] {
+                AppConfig.class,
+                DataSourceConfig.class,
+                LiquibaseConfig.class,
+                JpaConfig.class
+        };
     }
 
     @Override
