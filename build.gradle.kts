@@ -14,6 +14,8 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+//    testCompileOnly ("org.projectlombok:lombok:1.18.38")
+//    testAnnotationProcessor ("org.projectlombok:lombok:1.18.38")
 
     implementation(platform("org.springframework:spring-framework-bom:7.0.7"))
     implementation(platform("org.springframework.data:spring-data-bom:2025.1.5"))
@@ -26,6 +28,7 @@ dependencies {
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
     compileOnly("jakarta.annotation:jakarta.annotation-api:3.0.0")
     implementation("org.projectlombok:lombok:1.18.46")
+    annotationProcessor ("org.projectlombok:lombok:1.18.38")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
     runtimeOnly("org.postgresql:postgresql:42.7.11")
