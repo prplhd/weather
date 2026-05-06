@@ -25,6 +25,7 @@ dependencies {
     implementation("org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE")
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
     compileOnly("jakarta.annotation:jakarta.annotation-api:3.0.0")
+    implementation("org.projectlombok:lombok:1.18.46")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
     runtimeOnly("org.postgresql:postgresql:42.7.11")
