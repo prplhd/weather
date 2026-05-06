@@ -1,7 +1,7 @@
 CREATE TABLE locations (
-    id int GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    user_id int NOT NULL,
+    user_id bigint NOT NULL,
     latitude DECIMAL(8, 6) NOT NULL,
     longitude DECIMAL(9, 6) NOT NULL,
 
