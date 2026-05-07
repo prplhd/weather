@@ -23,6 +23,7 @@ dependencies {
     implementation("org.springframework:spring-webmvc")
     implementation("org.springframework:spring-orm")
     implementation("org.springframework.data:spring-data-jpa")
+    implementation("org.springframework.security:spring-security-crypto:7.1.0-M3")
 
     implementation("org.thymeleaf:thymeleaf-spring6:3.1.5.RELEASE")
     compileOnly("jakarta.servlet:jakarta.servlet-api:6.1.0")
@@ -34,6 +35,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql:42.7.11")
     implementation("org.liquibase:liquibase-core:5.0.2")
     implementation("org.hibernate.orm:hibernate-core:7.3.2.Final")
+    implementation("org.hibernate.validator:hibernate-validator:8.0.3.Final")
 }
 
 tasks.test {

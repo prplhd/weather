@@ -19,24 +19,37 @@
 
     <div class="row justify-content-center">
         <div class="col-12 col-lg-4 col-md-6 col-sm-12">
-            <form action="#" class="mt-4">
+            <form th:action="@{/auth/sign-up}" method="POST" class="mt-4" th:object="${registrationDto}">
+                <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger" role="alert">
+                    <ul class="mb-0">
+                        <li th:if="${#fields.hasErrors('login')}"
+                            th:text="${#fields.errors('login')[0]}">
+                        </li>
+
+                        <li th:if="${#fields.hasErrors('password')}"
+                            th:text="${#fields.errors('password')[0]}">
+                        </li>
+
+                        <li th:if="${#fields.hasErrors('confirmPassword')}"
+                            th:text="${#fields.errors('confirmPassword')[0]}">
+                        </li>
+                    </ul>
+                </div>
                 <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" required value=""/>
+                    <label for="login" class="form-label">Login</label>
+                    <input type="text" class="form-control" id="login" th:field="*{login}" required/>
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" required value=""/>
+                    <input type="password" class="form-control" id="password" th:field="*{password}" required/>
                 </div>
                 <div class="mb-3">
                     <label for="repeat-password" class="form-label">Repeat password</label>
-                    <input type="password" class="form-control" id="repeat-password" name="password" required value=""/>
+                    <input type="password" class="form-control" id="repeat-password" th:field="*{confirmPassword}" required/>
                 </div>
 
-                <input type="hidden" name="redirect_to" value="http://localhost/"/>
-
                 <button type="submit" class="btn btn-primary w-100 mt-3">Sign Up</button>
-                <p class="mt-2 text-center">Already have an account? <a href="#">Sign in here</a></p>
+                <p class="mt-2 text-center">Already have an account? <a th:href="@{/auth/sign-in}">Sign in here</a></p>
             </form>
         </div>
     </div>
