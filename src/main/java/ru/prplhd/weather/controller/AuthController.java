@@ -1,5 +1,7 @@
 package ru.prplhd.weather.controller;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -7,10 +9,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import ru.prplhd.weather.dto.SignInDto;
 import ru.prplhd.weather.dto.SignUpDto;
+import ru.prplhd.weather.exception.InvalidCredentialsException;
 import ru.prplhd.weather.exception.LoginAlreadyExistsException;
 import ru.prplhd.weather.service.AuthService;
 import ru.prplhd.weather.util.SignUpDtoValidator;
+
+import java.time.Duration;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/auth")
@@ -18,24 +25,49 @@ public class AuthController {
 
     private final AuthService authService;
     private final SignUpDtoValidator signUpDtoValidator;
+    private final Duration sessionTtl;
 
-    public AuthController(AuthService authService, SignUpDtoValidator signUpDtoValidator) {
+    public AuthController(AuthService authService, SignUpDtoValidator signUpDtoValidator, Duration sessionTtl) {
         this.authService = authService;
         this.signUpDtoValidator = signUpDtoValidator;
+        this.sessionTtl = sessionTtl;
     }
 
     @GetMapping("/sign-in")
-    public String signInPage() {
+    public String signInPage(@ModelAttribute("signInDto") SignUpDto signUpDto) {
         return "sign-in";
     }
 
     @GetMapping("/sign-up")
-    public String signUpPage(@ModelAttribute("registrationDto") SignUpDto signUpDto) {
+    public String signUpPage(@ModelAttribute("signUpDto") SignUpDto signUpDto) {
         return "sign-up";
     }
 
+    @PostMapping("/sign-in")
+    public String signIn(@ModelAttribute("signInDto") @Valid SignInDto signInDto,
+                         BindingResult bindingResult,
+                         HttpServletResponse response) {
+
+        if (bindingResult.hasErrors()) {
+            return "sign-in";
+        }
+
+        UUID sessionId;
+        try {
+            sessionId = authService.signIn(signInDto);
+        } catch (InvalidCredentialsException e) {
+            bindingResult.reject("invalid.credentials", e.getMessage());
+            return "sign-in";
+        }
+
+        Cookie sessionCookie = createSessionCookie(sessionId);
+        response.addCookie(sessionCookie);
+
+        return "redirect:/index";
+    }
+
     @PostMapping("/sign-up")
-    public String signUp (@ModelAttribute("registrationDto") @Valid SignUpDto signUpDto,
+    public String signUp(@ModelAttribute("signUpDto") @Valid SignUpDto signUpDto,
                           BindingResult bindingResult) {
 
         signUpDtoValidator.validate(signUpDto, bindingResult);
@@ -45,12 +77,24 @@ public class AuthController {
         }
 
         try {
-            authService.register(signUpDto);
+            authService.signUp(signUpDto);
         } catch (LoginAlreadyExistsException e) {
-            bindingResult.rejectValue("login", "login.alreadyExists", "This login is already taken");
+            bindingResult.rejectValue("login", "login.alreadyExists", e.getMessage());
             return "sign-up";
         }
 
         return "redirect:/auth/sign-in";
+    }
+
+    private Cookie createSessionCookie(UUID sessionId) {
+        Cookie cookie = new Cookie("SESSION", sessionId.toString());
+
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setSecure(false);
+        int cookieAge = Math.toIntExact(sessionTtl.toSeconds());
+        cookie.setMaxAge(cookieAge);
+
+        return cookie;
     }
 }

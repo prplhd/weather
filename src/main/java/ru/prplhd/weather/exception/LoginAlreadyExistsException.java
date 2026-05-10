@@ -1,6 +1,7 @@
 package ru.prplhd.weather.exception;
 
 public class LoginAlreadyExistsException extends RuntimeException {
-    public LoginAlreadyExistsException() {
+    public LoginAlreadyExistsException(String message) {
+        super(message);
     }
 }
