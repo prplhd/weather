@@ -7,7 +7,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
-@ComponentScan("ru.prplhd.weather.service")
+@ComponentScan({
+        "ru.prplhd.weather.service",
+        "ru.prplhd.weather.util"
+})
 public class AppConfig {
 
     @Bean
