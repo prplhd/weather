@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record RegistrationDto(
+public record SignUpDto(
         @NotBlank(message = "Login is required")
         @Size(min = 5, max = 255,message = "Login must be between {min} and {max} characters")
         @Pattern(

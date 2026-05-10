@@ -4,7 +4,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.prplhd.weather.dto.RegistrationDto;
+import ru.prplhd.weather.dto.SignUpDto;
 import ru.prplhd.weather.exception.LoginAlreadyExistsException;
 import ru.prplhd.weather.persistence.entity.UserEntity;
 import ru.prplhd.weather.persistence.repository.UserRepository;
@@ -28,9 +28,9 @@ public class AuthService {
     }
 
     @Transactional
-    public void register(RegistrationDto registrationDto) {
-        String hashedPassword = passwordEncoder.encode(registrationDto.password());
-        String login = registrationDto.login();
+    public void register(SignUpDto signUpDto) {
+        String hashedPassword = passwordEncoder.encode(signUpDto.password());
+        String login = signUpDto.login();
 
         UserEntity newUser = new UserEntity(login, hashedPassword);
 
