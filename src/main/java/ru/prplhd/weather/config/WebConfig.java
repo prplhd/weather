@@ -14,7 +14,7 @@ import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 
 @Configuration
-@ComponentScan("ru.prplhd.weather.controller")
+@ComponentScan("ru.prplhd.weather.web")
 @EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
 

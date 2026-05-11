@@ -1,7 +1,20 @@
 package ru.prplhd.weather.persistence.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.prplhd.weather.persistence.entity.SessionEntity;
 
+import java.util.Optional;
+import java.util.UUID;
+
 public interface SessionRepository extends JpaRepository<SessionEntity, Long> {
+
+    @Query("""
+           SELECT s
+           FROM SessionEntity s
+           JOIN FETCH s.user
+           WHERE s.id = :sessionId
+           """)
+    Optional<SessionEntity> findBySessionIdWithUser(@Param("sessionId")UUID sessionId);
 }

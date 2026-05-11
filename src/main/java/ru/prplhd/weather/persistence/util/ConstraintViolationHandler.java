@@ -1,4 +1,4 @@
-package ru.prplhd.weather.util;
+package ru.prplhd.weather.persistence.util;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;

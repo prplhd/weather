@@ -8,42 +8,33 @@ import ru.prplhd.weather.dto.SignInDto;
 import ru.prplhd.weather.dto.SignUpDto;
 import ru.prplhd.weather.exception.InvalidCredentialsException;
 import ru.prplhd.weather.exception.LoginAlreadyExistsException;
-import ru.prplhd.weather.persistence.entity.SessionEntity;
 import ru.prplhd.weather.persistence.entity.UserEntity;
 import ru.prplhd.weather.persistence.repository.SessionRepository;
 import ru.prplhd.weather.persistence.repository.UserRepository;
-import ru.prplhd.weather.util.ConstraintViolationHandler;
+import ru.prplhd.weather.persistence.util.ConstraintViolationHandler;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.UUID;
 
 @Service
 @Transactional(readOnly = true)
 public class AuthService {
 
-    private static final Duration SESSION_TTL = Duration.ofHours(24);
-
     private final UserRepository userRepository;
-    private final SessionRepository sessionRepository;
-
     private final PasswordEncoder passwordEncoder;
     private final ConstraintViolationHandler constraintViolationHandler;
-    private final Clock clock;
-    private final Duration sessionTtl;
+    private final SessionService sessionService;
 
-    public AuthService(UserRepository userRepository, SessionRepository sessionRepository,
+    public AuthService(UserRepository userRepository,
+                       SessionRepository sessionRepository,
                        PasswordEncoder passwordEncoder,
-                       ConstraintViolationHandler constraintViolationHandler, Clock clock, Duration sessionTtl) {
+                       ConstraintViolationHandler constraintViolationHandler, Clock clock, Duration sessionTtl, SessionService sessionService) {
 
         this.userRepository = userRepository;
-        this.sessionRepository = sessionRepository;
-
         this.passwordEncoder = passwordEncoder;
         this.constraintViolationHandler = constraintViolationHandler;
-        this.clock = clock;
-        this.sessionTtl = sessionTtl;
+        this.sessionService = sessionService;
     }
 
     @Transactional
@@ -80,18 +71,6 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid login or password");
         }
 
-        UUID sessionId = UUID.randomUUID();
-        Instant createdAt = clock.instant();
-        Instant expiresAt = createdAt.plus(sessionTtl);
-
-        SessionEntity sessionEntity = new SessionEntity(
-                sessionId,
-                userEntity,
-                expiresAt
-        );
-
-        sessionRepository.save(sessionEntity);
-
-        return sessionId;
+        return sessionService.createSession(userEntity);
     }
 }

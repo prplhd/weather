@@ -1,4 +1,4 @@
-package ru.prplhd.weather.util;
+package ru.prplhd.weather.web.validation;
 
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;

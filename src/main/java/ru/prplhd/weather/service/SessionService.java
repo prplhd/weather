@@ -1,0 +1,78 @@
+package ru.prplhd.weather.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.prplhd.weather.dto.AuthenticatedUser;
+import ru.prplhd.weather.persistence.entity.SessionEntity;
+import ru.prplhd.weather.persistence.entity.UserEntity;
+import ru.prplhd.weather.persistence.repository.SessionRepository;
+
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+@Transactional(readOnly = true)
+public class SessionService {
+
+    private final Clock clock;
+    private final Duration sessionTtl;
+    private final SessionRepository sessionRepository;
+
+
+    public SessionService(Clock clock,
+                          Duration sessionTtl,
+                          SessionRepository sessionRepository) {
+
+        this.clock = clock;
+        this.sessionTtl = sessionTtl;
+        this.sessionRepository = sessionRepository;
+    }
+
+    @Transactional
+    public UUID createSession(UserEntity userEntity) {
+        UUID sessionId = UUID.randomUUID();
+        Instant createdAt = clock.instant();
+        Instant expiresAt = createdAt.plus(sessionTtl);
+
+        SessionEntity sessionEntity = new SessionEntity(
+                sessionId,
+                userEntity,
+                expiresAt
+        );
+
+        sessionRepository.save(sessionEntity);
+
+        return sessionId;
+    }
+
+    @Transactional
+    public Optional<AuthenticatedUser> resolveUserBySessionId(UUID sessionId) {
+        Optional<SessionEntity> sessionEntityOpt = sessionRepository.findBySessionIdWithUser(sessionId);
+
+        if (sessionEntityOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        SessionEntity sessionEntity = sessionEntityOpt.get();
+
+        Instant now = clock.instant();
+        boolean isSessionExpired = !sessionEntity.getExpiresAt().isAfter(now);
+
+        if (isSessionExpired) {
+            sessionRepository.delete(sessionEntity);
+            return Optional.empty();
+        }
+
+        UserEntity userEntity = sessionEntity.getUser();
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser(
+                userEntity.getId(),
+                userEntity.getLogin()
+        );
+
+        return Optional.of(authenticatedUser);
+    }
+}

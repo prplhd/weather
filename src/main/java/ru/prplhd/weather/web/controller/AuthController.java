@@ -1,6 +1,5 @@
-package ru.prplhd.weather.controller;
+package ru.prplhd.weather.web.controller;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -14,7 +13,8 @@ import ru.prplhd.weather.dto.SignUpDto;
 import ru.prplhd.weather.exception.InvalidCredentialsException;
 import ru.prplhd.weather.exception.LoginAlreadyExistsException;
 import ru.prplhd.weather.service.AuthService;
-import ru.prplhd.weather.util.SignUpDtoValidator;
+import ru.prplhd.weather.web.auth.SessionCookieManager;
+import ru.prplhd.weather.web.validation.SignUpDtoValidator;
 
 import java.time.Duration;
 import java.util.UUID;
@@ -25,12 +25,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final SignUpDtoValidator signUpDtoValidator;
-    private final Duration sessionTtl;
+    private final SessionCookieManager sessionCookieManager;
 
-    public AuthController(AuthService authService, SignUpDtoValidator signUpDtoValidator, Duration sessionTtl) {
+    public AuthController(AuthService authService, SignUpDtoValidator signUpDtoValidator, Duration sessionTtl, SessionCookieManager sessionCookieManager) {
         this.authService = authService;
         this.signUpDtoValidator = signUpDtoValidator;
-        this.sessionTtl = sessionTtl;
+        this.sessionCookieManager = sessionCookieManager;
     }
 
     @GetMapping("/sign-in")
@@ -60,8 +60,7 @@ public class AuthController {
             return "sign-in";
         }
 
-        Cookie sessionCookie = createSessionCookie(sessionId);
-        response.addCookie(sessionCookie);
+        sessionCookieManager.addSessionCookie(sessionId, response);
 
         return "redirect:/index";
     }
@@ -84,17 +83,5 @@ public class AuthController {
         }
 
         return "redirect:/auth/sign-in";
-    }
-
-    private Cookie createSessionCookie(UUID sessionId) {
-        Cookie cookie = new Cookie("SESSION", sessionId.toString());
-
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setSecure(false);
-        int cookieAge = Math.toIntExact(sessionTtl.toSeconds());
-        cookie.setMaxAge(cookieAge);
-
-        return cookie;
     }
 }

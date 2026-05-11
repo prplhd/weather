@@ -15,7 +15,7 @@ import java.time.Duration;
 @PropertySource("classpath:app.properties")
 @ComponentScan({
         "ru.prplhd.weather.service",
-        "ru.prplhd.weather.util"
+        "ru.prplhd.weather.persistence.util"
 })
 public class AppConfig {
 
