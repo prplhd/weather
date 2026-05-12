@@ -53,10 +53,18 @@ public class SessionCookieManager {
         for (Cookie cookie : cookies) {
             if (SESSION_COOKIE_NAME.equals(cookie.getName())) {
                 String sessionId = cookie.getValue();
-                return Optional.of(UUID.fromString(sessionId));
+                return parseUuid(sessionId);
             }
         }
 
         return Optional.empty();
+    }
+
+    private Optional<UUID> parseUuid(String value) {
+        try {
+            return Optional.of(UUID.fromString(value));
+        } catch (IllegalArgumentException ignored) {
+            return Optional.empty();
+        }
     }
 }

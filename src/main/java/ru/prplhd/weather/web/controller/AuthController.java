@@ -62,7 +62,7 @@ public class AuthController {
 
         sessionCookieManager.addSessionCookie(sessionId, response);
 
-        return "redirect:/index";
+        return "redirect:/";
     }
 
     @PostMapping("/sign-up")

@@ -5,13 +5,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.spring6.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring6.view.ThymeleafViewResolver;
+import ru.prplhd.weather.web.auth.AuthenticatedUserProvider;
+import ru.prplhd.weather.web.interceptor.AuthInterceptor;
 
 @Configuration
 @ComponentScan("ru.prplhd.weather.web")
@@ -19,10 +18,12 @@ import org.thymeleaf.spring6.view.ThymeleafViewResolver;
 public class WebConfig implements WebMvcConfigurer {
 
     private final ApplicationContext applicationContext;
+    private final AuthInterceptor authInterceptor;
 
     @Autowired
-    public WebConfig(ApplicationContext applicationContext) {
+    public WebConfig(ApplicationContext applicationContext, AuthenticatedUserProvider authenticatedUserProvider, AuthInterceptor authInterceptor) {
         this.applicationContext = applicationContext;
+        this.authInterceptor = authInterceptor;
     }
 
     @Bean
@@ -58,5 +59,16 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/css/**")
                 .addResourceLocations("/css/");
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/auth/**",
+                        "/css/**",
+                        "/images/**"
+                );
     }
 }
