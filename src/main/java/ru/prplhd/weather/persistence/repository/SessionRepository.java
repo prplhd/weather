@@ -8,7 +8,7 @@ import ru.prplhd.weather.persistence.entity.SessionEntity;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface SessionRepository extends JpaRepository<SessionEntity, Long> {
+public interface SessionRepository extends JpaRepository<SessionEntity, UUID> {
 
     @Query("""
            SELECT s

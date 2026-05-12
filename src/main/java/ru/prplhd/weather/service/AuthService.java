@@ -9,12 +9,9 @@ import ru.prplhd.weather.dto.SignUpDto;
 import ru.prplhd.weather.exception.InvalidCredentialsException;
 import ru.prplhd.weather.exception.LoginAlreadyExistsException;
 import ru.prplhd.weather.persistence.entity.UserEntity;
-import ru.prplhd.weather.persistence.repository.SessionRepository;
 import ru.prplhd.weather.persistence.repository.UserRepository;
 import ru.prplhd.weather.persistence.util.ConstraintViolationHandler;
 
-import java.time.Clock;
-import java.time.Duration;
 import java.util.UUID;
 
 @Service
@@ -27,9 +24,9 @@ public class AuthService {
     private final SessionService sessionService;
 
     public AuthService(UserRepository userRepository,
-                       SessionRepository sessionRepository,
                        PasswordEncoder passwordEncoder,
-                       ConstraintViolationHandler constraintViolationHandler, Clock clock, Duration sessionTtl, SessionService sessionService) {
+                       ConstraintViolationHandler constraintViolationHandler,
+                       SessionService sessionService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -72,5 +69,10 @@ public class AuthService {
         }
 
         return sessionService.createSession(userEntity);
+    }
+
+    @Transactional
+    public void signOut(UUID sessionId) {
+        sessionService.deleteSession(sessionId);
     }
 }

@@ -1,5 +1,6 @@
 package ru.prplhd.weather.web.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -17,6 +18,7 @@ import ru.prplhd.weather.web.auth.SessionCookieManager;
 import ru.prplhd.weather.web.validation.SignUpDtoValidator;
 
 import java.time.Duration;
+import java.util.Optional;
 import java.util.UUID;
 
 @Controller
@@ -81,6 +83,19 @@ public class AuthController {
             bindingResult.rejectValue("login", "login.alreadyExists", e.getMessage());
             return "sign-up";
         }
+
+        return "redirect:/auth/sign-in";
+    }
+
+    @PostMapping("/sign-out")
+    public String signOut(HttpServletRequest request, HttpServletResponse response) {
+        Optional<UUID> sessionIdOpt = sessionCookieManager.findSessionId(request);
+
+        if (sessionIdOpt.isPresent()) {
+            authService.signOut(sessionIdOpt.get());
+        }
+
+        sessionCookieManager.deleteSessionCookie(response);
 
         return "redirect:/auth/sign-in";
     }

@@ -75,4 +75,9 @@ public class SessionService {
 
         return Optional.of(authenticatedUser);
     }
+
+    @Transactional
+    public void deleteSession(UUID sessionId) {
+        sessionRepository.deleteById(sessionId);
+    }
 }
