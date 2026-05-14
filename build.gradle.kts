@@ -11,11 +11,13 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation(platform("org.junit:junit-bom:6.0.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-//    testCompileOnly ("org.projectlombok:lombok:1.18.38")
-//    testAnnotationProcessor ("org.projectlombok:lombok:1.18.38")
+    testImplementation("org.springframework:spring-test")
+    testImplementation("org.assertj:assertj-core:3.27.7")
+    testImplementation("org.glassfish.expressly:expressly:5.0.0")
+//    testImplementation("org.mockito:mockito-junit-jupiter:5.23.0")
 
     implementation(platform("org.springframework:spring-framework-bom:7.0.7"))
     implementation(platform("org.springframework.data:spring-data-bom:2025.1.5"))
