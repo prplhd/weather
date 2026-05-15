@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 })
 @TestPropertySource("classpath:app-test.properties")
 @Transactional
+@Tag("auth")
 class AuthServiceTest {
 
     private static final String VALID_LOGIN = "prplhd";
@@ -68,7 +69,6 @@ class AuthServiceTest {
     Duration sessionTtl;
 
     @Test
-    @Tag("auth")
     @DisplayName("Sign up with valid data creates user in database")
     void whenSignUp_withValidDto_thenCreatesUser() {
         authService.signUp(VALID_SIGN_UP_DTO);
@@ -79,7 +79,6 @@ class AuthServiceTest {
     }
 
     @Test
-    @Tag("auth")
     @DisplayName("Sign up with duplicate login throws UserAlreadyExistsException")
     void whenSignUp_withExistingLogin_thenThrowsException() {
         userRepository.save(new UserEntity(VALID_SIGN_UP_DTO.login(), "randomPass"));
@@ -89,23 +88,21 @@ class AuthServiceTest {
     }
 
     @Test
-    @Tag("auth")
     @DisplayName("Sing in with valid credentials creates session")
     void whenSignIn_withValidCredentials_thenCreatesSession() {
         givenUserExistsInDb();
 
         UUID sessionId = authService.signIn(VALID_SIGN_IN_DTO);
-        Optional<SessionEntity> sessionEntity = sessionRepository.findById(sessionId);
+        Optional<SessionEntity> sessionOpt = sessionRepository.findById(sessionId);
 
-        assertThat(sessionEntity).isPresent();
+        assertThat(sessionOpt).isPresent();
 
-        String sessionUserLogin = sessionEntity.get().getUser().getLogin();
+        String sessionUserLogin = sessionOpt.get().getUser().getLogin();
 
         assertThat(sessionUserLogin).isEqualTo(VALID_SIGN_IN_DTO.login());
     }
 
     @Test
-    @Tag("auth")
     @DisplayName("Sign in with unknown login throws InvalidCredentialsException")
     void whenSignIn_withUnknownLogin_thenThrowsException() {
         SignInDto dtoWithUnknownLogin = new SignInDto(UNKNOWN_LOGIN, VALID_PASSWORD);
@@ -115,7 +112,6 @@ class AuthServiceTest {
     }
 
     @Test
-    @Tag("auth")
     @DisplayName("Sign in with wrong password throws InvalidCredentialsException")
     void whenSignIn_withWrongPassword_thenThrowsException() {
         givenUserExistsInDb();
@@ -126,7 +122,6 @@ class AuthServiceTest {
     }
 
     @Test
-    @Tag("auth")
     @DisplayName("Sign out deletes existing session")
     void whenSignOut_withExistingSession_thenDeletesSession() {
         SessionEntity session = givenActiveSessionExistsInDb();
