@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,14 +12,23 @@ import ru.prplhd.weather.config.AppConfig;
 import ru.prplhd.weather.config.DataSourceConfig;
 import ru.prplhd.weather.config.JpaConfig;
 import ru.prplhd.weather.config.LiquibaseConfig;
+import ru.prplhd.weather.dto.SignInDto;
 import ru.prplhd.weather.dto.SignUpDto;
+import ru.prplhd.weather.exception.InvalidCredentialsException;
+import ru.prplhd.weather.exception.LoginAlreadyExistsException;
+import ru.prplhd.weather.persistence.entity.SessionEntity;
 import ru.prplhd.weather.persistence.entity.UserEntity;
 import ru.prplhd.weather.persistence.repository.SessionRepository;
 import ru.prplhd.weather.persistence.repository.UserRepository;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringJUnitConfig(classes = {
         AppConfig.class,
@@ -30,6 +40,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class AuthServiceTest {
 
+    private static final String VALID_LOGIN = "prplhd";
+    private static final String VALID_PASSWORD = "123qwe";
+
+    private static final String UNKNOWN_LOGIN = "doradura";
+    private static final String WRONG_PASSWORD = "maybebaby322";
+
+    private static final SignUpDto VALID_SIGN_UP_DTO = new SignUpDto(VALID_LOGIN, VALID_PASSWORD, VALID_PASSWORD);
+    private static final SignInDto VALID_SIGN_IN_DTO = new SignInDto(VALID_LOGIN, VALID_PASSWORD);
+
     @Autowired
     AuthService authService;
 
@@ -39,16 +58,101 @@ class AuthServiceTest {
     @Autowired
     SessionRepository sessionRepository;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    @Autowired
+    Clock clock;
+
+    @Autowired
+    Duration sessionTtl;
+
     @Test
     @Tag("auth")
     @DisplayName("Sign up with valid data creates user in database")
     void whenSignUp_withValidDto_thenCreatesUser() {
-        SignUpDto signUpDto = new SignUpDto("prplhd", "123qwe", "123qwe");
+        authService.signUp(VALID_SIGN_UP_DTO);
 
-        authService.signUp(signUpDto);
-
-        Optional<UserEntity> optUserEntity = userRepository.findByLoginIgnoreCase(signUpDto.login());
+        Optional<UserEntity> optUserEntity = userRepository.findByLoginIgnoreCase(VALID_SIGN_UP_DTO.login());
 
         assertThat(optUserEntity).isPresent();
+    }
+
+    @Test
+    @Tag("auth")
+    @DisplayName("Sign up with duplicate login throws UserAlreadyExistsException")
+    void whenSignUp_withExistingLogin_thenThrowsException() {
+        userRepository.save(new UserEntity(VALID_SIGN_UP_DTO.login(), "randomPass"));
+
+        assertThatThrownBy(() -> authService.signUp(VALID_SIGN_UP_DTO))
+                .isInstanceOf(LoginAlreadyExistsException.class);
+    }
+
+    @Test
+    @Tag("auth")
+    @DisplayName("Sing in with valid credentials creates session")
+    void whenSignIn_withValidCredentials_thenCreatesSession() {
+        givenUserExistsInDb();
+
+        UUID sessionId = authService.signIn(VALID_SIGN_IN_DTO);
+        Optional<SessionEntity> sessionEntity = sessionRepository.findById(sessionId);
+
+        assertThat(sessionEntity).isPresent();
+
+        String sessionUserLogin = sessionEntity.get().getUser().getLogin();
+
+        assertThat(sessionUserLogin).isEqualTo(VALID_SIGN_IN_DTO.login());
+    }
+
+    @Test
+    @Tag("auth")
+    @DisplayName("Sign in with unknown login throws InvalidCredentialsException")
+    void whenSignIn_withUnknownLogin_thenThrowsException() {
+        SignInDto dtoWithUnknownLogin = new SignInDto(UNKNOWN_LOGIN, VALID_PASSWORD);
+
+        assertThatThrownBy(() -> authService.signIn(dtoWithUnknownLogin))
+                .isInstanceOf(InvalidCredentialsException.class);
+    }
+
+    @Test
+    @Tag("auth")
+    @DisplayName("Sign in with wrong password throws InvalidCredentialsException")
+    void whenSignIn_withWrongPassword_thenThrowsException() {
+        givenUserExistsInDb();
+
+        SignInDto dtoWithWrongPassword = new SignInDto(VALID_LOGIN, WRONG_PASSWORD);
+
+        assertThatThrownBy(() -> authService.signIn(dtoWithWrongPassword)).isInstanceOf(InvalidCredentialsException.class);
+    }
+
+    @Test
+    @Tag("auth")
+    @DisplayName("Sign out deletes existing session")
+    void whenSignOut_withExistingSession_thenDeletesSession() {
+        SessionEntity session = givenActiveSessionExistsInDb();
+        UUID sessionId = session.getId();
+
+        assertThat(sessionRepository.findById(sessionId)).isPresent();
+
+        authService.signOut(sessionId);
+
+        assertThat(sessionRepository.findById(sessionId)).isEmpty();
+    }
+
+    private UserEntity givenUserExistsInDb() {
+        String hashPassword = passwordEncoder.encode(VALID_PASSWORD);
+        UserEntity user = new UserEntity(VALID_LOGIN, hashPassword);
+
+        return userRepository.save(user);
+    }
+
+    private SessionEntity givenActiveSessionExistsInDb() {
+        UUID sessionId = UUID.randomUUID();
+        UserEntity user = givenUserExistsInDb();
+        Instant expiresAt = clock.instant().plus(sessionTtl);
+
+        SessionEntity session = new SessionEntity(sessionId, user, expiresAt);
+
+        return sessionRepository.save(session);
     }
 }
